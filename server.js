@@ -1,5 +1,8 @@
 const express = require("express");
+const mongoose = require("mongoose");
 require("dotenv").config();
+
+const noteRoutes = require("./routes/notes");
 
 const app = express();
 
@@ -9,15 +12,19 @@ app.get("/", (req, res) => {
   res.send("API is running");
 });
 
-app.listen(process.env.PORT || 5000, () => {
-  console.log("Server started");
-});
+app.use("/api/notes", noteRoutes);
 
-const mongoose = require("mongoose");
+const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log(err));
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected");
 
-  const noteRoutes = require("./routes/notes");
-    app.use("/api/notes", noteRoutes);
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection failed:", error.message);
+  });
