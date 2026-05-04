@@ -3,10 +3,12 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const noteRoutes = require("./routes/notes");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
 app.use(express.json());
+app.use("/api/auth", authRoutes);
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
