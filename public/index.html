@@ -4,6 +4,7 @@
   <title>Notes App</title>
 </head>
 <body>
+
   <h1>Notes App</h1>
 
   <input id="title" placeholder="Title" />
@@ -12,7 +13,7 @@
   <textarea id="content" placeholder="Content"></textarea>
   <br><br>
 
-  <button onclick="addNote()">Add Note</button>
+  <button onclick="addNote()">Save Note</button>
 
   <p id="message"></p>
 
@@ -20,56 +21,102 @@
   <div id="notes"></div>
 
   <script>
+    let editingId = null;
+
     async function addNote() {
-      const title = document.getElementById("title").value;
-      const content = document.getElementById("content").value;
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
 
-      const response = await fetch("/api/notes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ title, content })
-      });
+      if (!title || !content) {
+        document.getElementById("message").innerText = "Please fill all fields";
+        return;
+      }
 
-      const result = await response.json();
+      const url = editingId ? `/api/notes/${editingId}` : "/api/notes";
+      const method = editingId ? "PUT" : "POST";
 
-      document.getElementById("message").innerText = result.message;
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ title, content })
+        });
 
-      fetchNotes();
+        const result = await response.json();
+
+        document.getElementById("message").innerText = result.message;
+
+        document.getElementById("title").value = "";
+        document.getElementById("content").value = "";
+
+        editingId = null;
+
+        fetchNotes();
+      } catch (error) {
+        document.getElementById("message").innerText = "Something went wrong";
+      }
     }
 
     async function fetchNotes() {
-      const response = await fetch("/api/notes");
-      const result = await response.json();
+      try {
+        const response = await fetch("/api/notes");
+        const result = await response.json();
 
-      const notesDiv = document.getElementById("notes");
-      notesDiv.innerHTML = "";
-      result.data.forEach(note => {
-        notesDiv.innerHTML += `
-          <div>
-            <h3>${note.title}</h3>
-            <p>${note.content}</p>
-            <button onclick="deleteNote('${note._id}')">Delete</button>
-            <hr>
-          </div>
-        `;
-      });
+        const notesDiv = document.getElementById("notes");
+        notesDiv.innerHTML = "";
+
+        result.data.forEach(note => {
+          notesDiv.innerHTML += `
+            <div>
+              <h3>${note.title}</h3>
+              <p>${note.content}</p>
+
+              <button onclick="editNote('${note._id}', \`${note.title}\`, \`${note.content}\`)">
+                Edit
+              </button>
+
+              <button onclick="deleteNote('${note._id}')">
+                Delete
+              </button>
+
+              <hr>
+            </div>
+          `;
+        });
+      } catch (error) {
+        document.getElementById("message").innerText = "Failed to load notes";
+      }
     }
-    
-    fetchNotes();
+
+    function editNote(id, title, content) {
+      editingId = id;
+
+      document.getElementById("title").value = title;
+      document.getElementById("content").value = content;
+
+      document.getElementById("message").innerText = "Editing note...";
+    }
 
     async function deleteNote(id) {
-  const response = await fetch(`/api/notes/${id}`, {
-    method: "DELETE"
-  });
+      try {
+        const response = await fetch(`/api/notes/${id}`, {
+          method: "DELETE"
+        });
 
-  const result = await response.json();
+        const result = await response.json();
 
-  document.getElementById("message").innerText = result.message;
+        document.getElementById("message").innerText = result.message;
 
-  fetchNotes();
-}
+        fetchNotes();
+      } catch (error) {
+        document.getElementById("message").innerText = "Delete failed";
+      }
+    }
+
+    fetchNotes();
   </script>
+
 </body>
 </html>

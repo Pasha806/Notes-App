@@ -79,3 +79,41 @@ router.delete("/:id", async (req, res) => {
     });
   }
 });
+
+router.put("/:id", async (req, res) => {
+  try {
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({
+        success: false,
+        message: "Title and content are required"
+      });
+    }
+
+    const note = await Note.findByIdAndUpdate(
+      req.params.id,
+      { title, content },
+      { new: true, runValidators: true }
+    );
+
+    if (!note) {
+      return res.status(404).json({
+        success: false,
+        message: "Note not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Note updated successfully",
+      data: note
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update note",
+      error: error.message
+    });
+  }
+});
