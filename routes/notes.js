@@ -3,21 +3,39 @@ const Note = require("../models/Note");
 
 const router = express.Router();
 
-// Add note to MongoDB
+function validateNoteInput(title, content) {
+  if (!title || !content) {
+    return "Title and content are required";
+  }
+
+  if (title.trim().length < 3) {
+    return "Title must be at least 3 characters";
+  }
+
+  if (content.trim().length < 5) {
+    return "Content must be at least 5 characters";
+  }
+
+  return null;
+}
+
+// CREATE
 router.post("/", async (req, res) => {
   try {
     const { title, content } = req.body;
 
-    if (!title || !content) {
+    const validationError = validateNoteInput(title, content);
+
+    if (validationError) {
       return res.status(400).json({
         success: false,
-        message: "Title and content are required"
+        message: validationError
       });
     }
 
     const note = await Note.create({
-      title,
-      content
+      title: title.trim(),
+      content: content.trim()
     });
 
     res.status(201).json({
@@ -34,9 +52,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
-
-// Get all notes from MongoDB
+// READ ALL
 router.get("/", async (req, res) => {
   try {
     const notes = await Note.find().sort({ createdAt: -1 });
@@ -56,6 +72,51 @@ router.get("/", async (req, res) => {
   }
 });
 
+// UPDATE
+router.put("/:id", async (req, res) => {
+  try {
+    const { title, content } = req.body;
+
+    const validationError = validateNoteInput(title, content);
+
+    if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError
+      });
+    }
+
+    const note = await Note.findByIdAndUpdate(
+      req.params.id,
+      {
+        title: title.trim(),
+        content: content.trim()
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!note) {
+      return res.status(404).json({
+        success: false,
+        message: "Note not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Note updated successfully",
+      data: note
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update note",
+      error: error.message
+    });
+  }
+});
+
+// DELETE
 router.delete("/:id", async (req, res) => {
   try {
     const note = await Note.findByIdAndDelete(req.params.id);
@@ -80,40 +141,4 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
-  try {
-    const { title, content } = req.body;
-
-    if (!title || !content) {
-      return res.status(400).json({
-        success: false,
-        message: "Title and content are required"
-      });
-    }
-
-    const note = await Note.findByIdAndUpdate(
-      req.params.id,
-      { title, content },
-      { new: true, runValidators: true }
-    );
-
-    if (!note) {
-      return res.status(404).json({
-        success: false,
-        message: "Note not found"
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Note updated successfully",
-      data: note
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to update note",
-      error: error.message
-    });
-  }
-});
+module.exports = router;
