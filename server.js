@@ -7,6 +7,7 @@ const noteRoutes = require("./routes/notes");
 const app = express();
 
 app.use(express.json());
+app.use(express.static("public"));
 
 app.get("/", (req, res) => {
   res.send("API is running");
