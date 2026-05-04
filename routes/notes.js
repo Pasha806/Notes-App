@@ -1,7 +1,9 @@
 const express = require("express");
 const Note = require("../models/Note");
+const protect = require("../middleware/authMiddleware");
 
 const router = express.Router();
+router.use(protect);
 
 function validateNoteInput(title, content) {
   if (!title || !content) {
@@ -34,8 +36,9 @@ router.post("/", async (req, res) => {
     }
 
     const note = await Note.create({
-      title: title.trim(),
-      content: content.trim()
+    title: title.trim(),
+    content: content.trim(),
+    user: req.user._id
     });
 
     res.status(201).json({
@@ -63,7 +66,9 @@ router.get("/", async (req, res) => {
     const limit = Number(req.query.limit) || 5;
     const skip = (page - 1) * limit;
 
-    let filter = {};
+    let filter = {
+    user: req.user._id
+    };
 
     if (search) {
       filter.$or = [
@@ -123,13 +128,16 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    const note = await Note.findByIdAndUpdate(
-      req.params.id,
-      {
-        title: title.trim(),
-        content: content.trim()
-      },
-      { new: true, runValidators: true }
+    const note = await Note.findOneAndUpdate(
+     {
+     _id: req.params.id,
+      user: req.user._id
+    },
+    {
+      title: title.trim(),
+      content: content.trim()
+     },
+     { new: true, runValidators: true }
     );
 
     if (!note) {
@@ -156,7 +164,10 @@ router.put("/:id", async (req, res) => {
 // DELETE
 router.delete("/:id", async (req, res) => {
   try {
-    const note = await Note.findByIdAndDelete(req.params.id);
+    const note = await Note.findOneAndDelete({
+  _id: req.params.id,
+  user: req.user._id
+});
 
     if (!note) {
       return res.status(404).json({
