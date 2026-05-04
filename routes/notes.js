@@ -52,26 +52,52 @@ router.post("/", async (req, res) => {
   }
 });
 
-// READ ALL + SEARCH
+// READ ALL + SEARCH + DATE FILTER + PAGINATION
 router.get("/", async (req, res) => {
   try {
     const search = req.query.search || "";
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
 
-    const filter = search
-      ? {
-          $or: [
-            { title: { $regex: search, $options: "i" } },
-            { content: { $regex: search, $options: "i" } }
-          ]
-        }
-      : {};
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
 
-    const notes = await Note.find(filter).sort({ createdAt: -1 });
+    let filter = {};
+
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { content: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    if (startDate || endDate) {
+      filter.createdAt = {};
+
+      if (startDate) {
+        filter.createdAt.$gte = new Date(startDate);
+      }
+
+      if (endDate) {
+        filter.createdAt.$lte = new Date(endDate);
+      }
+    }
+
+    const totalNotes = await Note.countDocuments(filter);
+
+    const notes = await Note.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
       success: true,
       message: "Notes fetched successfully",
       count: notes.length,
+      totalNotes,
+      currentPage: page,
+      totalPages: Math.ceil(totalNotes / limit),
       data: notes
     });
   } catch (error) {
