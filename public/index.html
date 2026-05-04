@@ -141,6 +141,12 @@
       <p id="message"></p>
     </div>
 
+    <input
+     id="searchInput"
+    placeholder="Search notes..."
+    oninput="fetchNotes()"
+    />
+
     <h2>All Notes</h2>
     <div id="notes"></div>
 
@@ -155,6 +161,7 @@
     const notesDiv = document.getElementById("notes");
     const saveBtn = document.getElementById("saveBtn");
     const cancelBtn = document.getElementById("cancelBtn");
+    const searchInput = document.getElementById("searchInput");
 
     async function saveNote() {
       const title = titleInput.value.trim();
@@ -200,7 +207,8 @@
       notesDiv.innerHTML = `<div class="empty">Loading notes...</div>`;
 
       try {
-        const response = await fetch("/api/notes");
+        const search = searchInput.value.trim();
+        const response = await fetch(`/api/notes?search=${encodeURIComponent(search)}`);
         const result = await response.json();
 
         notesDiv.innerHTML = "";

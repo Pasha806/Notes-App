@@ -52,10 +52,21 @@ router.post("/", async (req, res) => {
   }
 });
 
-// READ ALL
+// READ ALL + SEARCH
 router.get("/", async (req, res) => {
   try {
-    const notes = await Note.find().sort({ createdAt: -1 });
+    const search = req.query.search || "";
+
+    const filter = search
+      ? {
+          $or: [
+            { title: { $regex: search, $options: "i" } },
+            { content: { $regex: search, $options: "i" } }
+          ]
+        }
+      : {};
+
+    const notes = await Note.find(filter).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
