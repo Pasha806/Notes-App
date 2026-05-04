@@ -1,44 +1,37 @@
 const express = require("express");
-const router = express.Router();
 const Note = require("../models/Note");
 
-// CREATE
+const router = express.Router();
+
+// Add note to MongoDB
 router.post("/", async (req, res) => {
   try {
-    const note = new Note(req.body);
-    const saved = await note.save();
-    res.json(saved);
-  } catch (err) {
-    res.status(500).json(err);
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({
+        success: false,
+        message: "Title and content are required"
+      });
+    }
+
+    const note = await Note.create({
+      title,
+      content
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Note added successfully",
+      data: note
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to add note",
+      error: error.message
+    });
   }
-});
-
-// READ ALL
-router.get("/", async (req, res) => {
-  const notes = await Note.find();
-  res.json(notes);
-});
-
-// READ ONE
-router.get("/:id", async (req, res) => {
-  const note = await Note.findById(req.params.id);
-  res.json(note);
-});
-
-// UPDATE
-router.put("/:id", async (req, res) => {
-  const updated = await Note.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true }
-  );
-  res.json(updated);
-});
-
-// DELETE
-router.delete("/:id", async (req, res) => {
-  await Note.findByIdAndDelete(req.params.id);
-  res.json({ message: "Deleted" });
 });
 
 module.exports = router;
