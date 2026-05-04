@@ -16,7 +16,8 @@
       --danger: #e84d5b;
       --warn: #ffb020;
       --ok: #1fbf6c;
-      --shadow: 0 12px 35px rgba(0,0,0,0.08);
+      --shadow: 0 16px 45px rgba(31, 35, 60, 0.08);
+      --soft-shadow: 0 8px 24px rgba(31, 35, 60, 0.06);
     }
 
     body.dark {
@@ -26,24 +27,29 @@
       --muted: #aaa;
       --border: #303340;
       --accent-soft: #28234d;
-      --shadow: 0 12px 35px rgba(0,0,0,0.35);
+      --shadow: 0 16px 45px rgba(0,0,0,0.35);
+      --soft-shadow: 0 8px 24px rgba(0,0,0,0.25);
     }
 
     * {
       box-sizing: border-box;
-      font-family: Arial, sans-serif;
+      font-family: Inter, Arial, sans-serif;
     }
 
     body {
       margin: 0;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at top left, rgba(121, 102, 250, 0.13), transparent 34%),
+        radial-gradient(circle at top right, rgba(31, 191, 108, 0.08), transparent 28%),
+        var(--bg);
       color: var(--text);
+      transition: 0.25s ease;
     }
 
     .container {
       max-width: 980px;
       margin: 0 auto;
-      padding: 28px 18px;
+      padding: 34px 18px;
     }
 
     .topbar, .section-head {
@@ -51,16 +57,84 @@
       justify-content: space-between;
       align-items: center;
       gap: 14px;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
+    }
+
+    .brand-block h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+
+    .brand-block p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 560px;
+      line-height: 1.5;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .user-badge {
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(121, 102, 250, 0.18);
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .theme-toggle {
+      width: 58px;
+      height: 32px;
+      border-radius: 999px;
+      padding: 3px;
+      background: var(--accent-soft);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .toggle-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: block;
+      transition: 0.25s ease;
+      box-shadow: 0 5px 14px rgba(121, 102, 250, 0.35);
+    }
+
+    body.dark .toggle-circle {
+      transform: translateX(26px);
     }
 
     .card, .note {
-      background: var(--card);
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(12px);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 22px;
+      border-radius: 22px;
+      padding: 24px;
       box-shadow: var(--shadow);
       margin-bottom: 18px;
+    }
+
+    body.dark .card,
+    body.dark .note {
+      background: rgba(27, 29, 37, 0.86);
     }
 
     h1, h2, h3 {
@@ -73,14 +147,15 @@
 
     input, textarea, select {
       width: 100%;
-      padding: 13px 14px;
+      padding: 14px 15px;
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 15px;
       font-size: 15px;
       outline: none;
       background: var(--card);
       color: var(--text);
       margin-top: 10px;
+      transition: 0.2s ease;
     }
 
     textarea {
@@ -90,7 +165,7 @@
 
     input:focus, textarea:focus, select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-soft);
+      box-shadow: 0 0 0 4px var(--accent-soft);
     }
 
     button {
@@ -100,14 +175,22 @@
       cursor: pointer;
       font-size: 14px;
       margin-top: 12px;
+      transition: 0.2s ease;
+      font-weight: 600;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(0.98);
     }
 
     button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none;
     }
 
-    .primary { background: var(--accent); color: white; }
+    .primary { background: var(--accent); color: white; box-shadow: 0 8px 18px rgba(121, 102, 250, 0.25); }
     .danger { background: var(--danger); color: white; }
     .warn { background: var(--warn); color: white; }
     .gray { background: #777; color: white; }
@@ -127,6 +210,23 @@
     .notes {
       display: grid;
       gap: 14px;
+    }
+
+    .note {
+      transition: 0.22s ease;
+    }
+
+    .note:hover {
+      transform: translateY(-2px);
+    }
+
+    .note h3 {
+      margin-bottom: 8px;
+      letter-spacing: -0.2px;
+    }
+
+    .note p {
+      line-height: 1.55;
     }
 
     .empty {
@@ -185,6 +285,10 @@
         flex-direction: column;
         align-items: flex-start;
       }
+
+      .top-actions {
+        justify-content: flex-start;
+      }
     }
   </style>
 </head>
@@ -194,13 +298,18 @@
   <div class="container">
 
     <div class="topbar">
-      <div>
+      <div class="brand-block">
         <h1>Notes App</h1>
-        <p id="userText">Login to manage your private notes.</p>
+        <p>A clean private workspace to create, organize, search, and manage your notes with a simple focused workflow.</p>
       </div>
 
-      <div>
-        <button class="gray" onclick="toggleTheme()">Dark Mode</button>
+      <div class="top-actions">
+        <div id="userBadge" class="user-badge hidden"></div>
+
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+          <span class="toggle-circle"></span>
+        </button>
+
         <button id="logoutBtn" class="danger hidden" onclick="logout()">Logout</button>
       </div>
     </div>
@@ -283,7 +392,7 @@
     const authSection = document.getElementById("authSection");
     const appSection = document.getElementById("appSection");
     const logoutBtn = document.getElementById("logoutBtn");
-    const userText = document.getElementById("userText");
+    const userBadge = document.getElementById("userBadge");
 
     const authTitle = document.getElementById("authTitle");
     const authBtn = document.getElementById("authBtn");
@@ -383,7 +492,10 @@
       appSection.classList.remove("hidden");
       logoutBtn.classList.remove("hidden");
 
-      userText.innerText = savedUser ? `Logged in as ${savedUser.name}` : "Logged in";
+      if (savedUser) {
+        userBadge.innerText = savedUser.name;
+        userBadge.classList.remove("hidden");
+      }
 
       fetchNotes();
     }
@@ -392,7 +504,7 @@
       authSection.classList.remove("hidden");
       appSection.classList.add("hidden");
       logoutBtn.classList.add("hidden");
-      userText.innerText = "Login to manage your private notes.";
+      userBadge.classList.add("hidden");
     }
 
     function logout() {
