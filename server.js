@@ -28,23 +28,3 @@ mongoose
   .catch((error) => {
     console.error("MongoDB connection failed:", error.message);
   });
-
-  // Get all notes from MongoDB
-router.get("/", async (req, res) => {
-  try {
-    const notes = await Note.find().sort({ createdAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      message: "Notes fetched successfully",
-      count: notes.length,
-      data: notes
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch notes",
-      error: error.message
-    });
-  }
-});
