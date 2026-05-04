@@ -16,7 +16,7 @@
       --danger: #e84d5b;
       --warn: #ffb020;
       --ok: #1fbf6c;
-      --shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+      --shadow: 0 12px 35px rgba(0,0,0,0.08);
     }
 
     body.dark {
@@ -26,19 +26,18 @@
       --muted: #aaa;
       --border: #303340;
       --accent-soft: #28234d;
-      --shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+      --shadow: 0 12px 35px rgba(0,0,0,0.35);
     }
 
     * {
       box-sizing: border-box;
-      font-family: Inter, Arial, sans-serif;
+      font-family: Arial, sans-serif;
     }
 
     body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      transition: 0.25s ease;
     }
 
     .container {
@@ -47,48 +46,32 @@
       padding: 28px 18px;
     }
 
-    .topbar {
+    .topbar, .section-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 22px;
-    }
-
-    .title h1 {
-      margin: 0;
-      font-size: 32px;
-    }
-
-    .title p {
-      margin: 6px 0 0;
-      color: var(--muted);
-    }
-
-    .theme-btn {
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      padding: 22px;
-      box-shadow: var(--shadow);
+      gap: 14px;
       margin-bottom: 20px;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
+    .card, .note {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
     }
 
-    input,
-    textarea,
-    select {
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    p {
+      color: var(--muted);
+    }
+
+    input, textarea, select {
       width: 100%;
       padding: 13px 14px;
       border: 1px solid var(--border);
@@ -97,17 +80,15 @@
       outline: none;
       background: var(--card);
       color: var(--text);
+      margin-top: 10px;
     }
 
     textarea {
-      margin-top: 14px;
       min-height: 120px;
       resize: vertical;
     }
 
-    input:focus,
-    textarea:focus,
-    select:focus {
+    input:focus, textarea:focus, select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--accent-soft);
     }
@@ -118,100 +99,34 @@
       border-radius: 13px;
       cursor: pointer;
       font-size: 14px;
-      margin-top: 14px;
-      transition: 0.2s ease;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
+      margin-top: 12px;
     }
 
     button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
-      transform: none;
     }
 
-    .save-btn {
-      background: var(--accent);
-      color: white;
-    }
+    .primary { background: var(--accent); color: white; }
+    .danger { background: var(--danger); color: white; }
+    .warn { background: var(--warn); color: white; }
+    .gray { background: #777; color: white; }
 
-    .cancel-btn {
-      background: #777;
-      color: white;
-      margin-left: 8px;
-      display: none;
-    }
-
-    .edit-btn {
-      background: var(--warn);
-      color: white;
-      margin-right: 8px;
-    }
-
-    .delete-btn {
-      background: var(--danger);
-      color: white;
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
     }
 
     .filters {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr 120px;
       gap: 12px;
-      align-items: center;
-    }
-
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 18px 0 12px;
-    }
-
-    .section-head h2 {
-      margin: 0;
-    }
-
-    .count {
-      color: var(--muted);
-      font-size: 14px;
     }
 
     .notes {
       display: grid;
       gap: 14px;
-    }
-
-    .note {
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 18px;
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-    }
-
-    .note h3 {
-      margin: 0 0 8px;
-    }
-
-    .note p {
-      margin: 0 0 12px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .note small {
-      color: var(--muted);
-      display: block;
-      margin-bottom: 10px;
-    }
-
-    mark {
-      background: #fff1a8;
-      color: #111;
-      padding: 1px 3px;
-      border-radius: 4px;
     }
 
     .empty {
@@ -227,20 +142,8 @@
       display: flex;
       justify-content: center;
       gap: 10px;
-      margin-top: 18px;
       align-items: center;
-    }
-
-    .pagination button {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      margin-top: 0;
-    }
-
-    .page-info {
-      color: var(--muted);
-      font-size: 14px;
+      margin-top: 18px;
     }
 
     .toast {
@@ -258,45 +161,29 @@
       min-width: 240px;
     }
 
-    .toast.ok {
-      border-left: 5px solid var(--ok);
+    .toast.ok { border-left: 5px solid var(--ok); }
+    .toast.error { border-left: 5px solid var(--danger); }
+    .toast.info { border-left: 5px solid var(--accent); }
+
+    mark {
+      background: #fff1a8;
+      color: #111;
+      padding: 1px 3px;
+      border-radius: 4px;
     }
 
-    .toast.error {
-      border-left: 5px solid var(--danger);
-    }
-
-    .toast.info {
-      border-left: 5px solid var(--accent);
-    }
-
-    .spinner {
-      width: 22px;
-      height: 22px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 20px auto;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+    .hidden {
+      display: none;
     }
 
     @media (max-width: 760px) {
-      .grid,
-      .filters {
+      .grid, .filters {
         grid-template-columns: 1fr;
       }
 
-      .topbar,
-      .section-head {
-        align-items: flex-start;
+      .topbar, .section-head {
         flex-direction: column;
-        gap: 10px;
+        align-items: flex-start;
       }
     }
   </style>
@@ -307,56 +194,76 @@
   <div class="container">
 
     <div class="topbar">
-      <div class="title">
+      <div>
         <h1>Notes App</h1>
-        <p>Create, search, filter, edit, and manage your notes.</p>
+        <p id="userText">Login to manage your private notes.</p>
       </div>
 
-      <button class="theme-btn" onclick="toggleTheme()">Toggle Dark Mode</button>
-    </div>
-
-    <div class="card">
-      <div class="grid">
-        <input id="title" placeholder="Enter note title" />
-        <input id="quickTag" placeholder="Optional tag/category" />
-      </div>
-
-      <textarea id="content" placeholder="Enter note content"></textarea>
-
-      <button id="saveBtn" class="save-btn" onclick="saveNote()">Save Note</button>
-
-      <button id="cancelBtn" class="cancel-btn" onclick="cancelEdit()">
-        Cancel Edit
-      </button>
-    </div>
-
-    <div class="card">
-      <div class="filters">
-        <input id="searchInput" placeholder="Search title or content..." />
-
-        <input id="startDate" type="date" />
-
-        <input id="endDate" type="date" />
-
-        <select id="limitSelect">
-          <option value="5">5 / page</option>
-          <option value="10">10 / page</option>
-          <option value="20">20 / page</option>
-        </select>
+      <div>
+        <button class="gray" onclick="toggleTheme()">Dark Mode</button>
+        <button id="logoutBtn" class="danger hidden" onclick="logout()">Logout</button>
       </div>
     </div>
 
-    <div class="section-head">
-      <h2>All Notes</h2>
-      <div class="count" id="countText">Loading...</div>
+    <!-- AUTH SECTION -->
+    <div id="authSection" class="card">
+      <h2 id="authTitle">Login</h2>
+
+      <input id="name" placeholder="Name" class="hidden" />
+      <input id="email" placeholder="Email" type="email" />
+      <input id="password" placeholder="Password" type="password" />
+
+      <button id="authBtn" class="primary" onclick="handleAuth()">Login</button>
+
+      <p>
+        <span id="authSwitchText">Don't have an account?</span>
+        <button class="gray" onclick="toggleAuthMode()">Switch</button>
+      </p>
     </div>
 
-    <div id="notes" class="notes"></div>
+    <!-- APP SECTION -->
+    <div id="appSection" class="hidden">
 
-    <div class="pagination">
-      <button id="prevBtn" onclick="changePage(-1)">Previous</button>
-      <span class="page-info" id="pageInfo">Page 1</span>
-      <button id="nextBtn" onclick="changePage(1)">Next</button>
+      <div class="card">
+        <div class="grid">
+          <input id="title" placeholder="Enter note title" />
+          <input id="quickTag" placeholder="Optional tag/category" />
+        </div>
+
+        <textarea id="content" placeholder="Enter note content"></textarea>
+
+        <button id="saveBtn" class="primary" onclick="saveNote()">Save Note</button>
+
+        <button id="cancelBtn" class="gray hidden" onclick="cancelEdit()">Cancel Edit</button>
+      </div>
+
+      <div class="card">
+        <div class="filters">
+          <input id="searchInput" placeholder="Search title or content..." />
+          <input id="startDate" type="date" />
+          <input id="endDate" type="date" />
+
+          <select id="limitSelect">
+            <option value="5">5 / page</option>
+            <option value="10">10 / page</option>
+            <option value="20">20 / page</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h2>All Notes</h2>
+        <div id="countText">Loading...</div>
+      </div>
+
+      <div id="notes" class="notes"></div>
+
+      <div class="pagination">
+        <button id="prevBtn" onclick="changePage(-1)">Previous</button>
+        <span id="pageInfo">Page 1</span>
+        <button id="nextBtn" onclick="changePage(1)">Next</button>
+      </div>
+
     </div>
 
   </div>
@@ -364,10 +271,27 @@
   <div id="toast" class="toast"></div>
 
   <script>
+    let isSignup = false;
     let editingId = null;
     let currentPage = 1;
     let totalPages = 1;
     let debounceTimer = null;
+
+    const token = () => localStorage.getItem("notes_token");
+    const user = () => JSON.parse(localStorage.getItem("notes_user") || "null");
+
+    const authSection = document.getElementById("authSection");
+    const appSection = document.getElementById("appSection");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const userText = document.getElementById("userText");
+
+    const authTitle = document.getElementById("authTitle");
+    const authBtn = document.getElementById("authBtn");
+    const authSwitchText = document.getElementById("authSwitchText");
+
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
 
     const titleInput = document.getElementById("title");
     const contentInput = document.getElementById("content");
@@ -375,15 +299,109 @@
     const notesDiv = document.getElementById("notes");
     const saveBtn = document.getElementById("saveBtn");
     const cancelBtn = document.getElementById("cancelBtn");
+
     const searchInput = document.getElementById("searchInput");
     const startDateInput = document.getElementById("startDate");
     const endDateInput = document.getElementById("endDate");
     const limitSelect = document.getElementById("limitSelect");
+
     const countText = document.getElementById("countText");
     const pageInfo = document.getElementById("pageInfo");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
     const toast = document.getElementById("toast");
+
+    function authHeaders() {
+      return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token()}`
+      };
+    }
+
+    function toggleAuthMode() {
+      isSignup = !isSignup;
+
+      authTitle.innerText = isSignup ? "Signup" : "Login";
+      authBtn.innerText = isSignup ? "Signup" : "Login";
+      authSwitchText.innerText = isSignup ? "Already have an account?" : "Don't have an account?";
+
+      nameInput.classList.toggle("hidden", !isSignup);
+    }
+
+    async function handleAuth() {
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (isSignup && !name) {
+        showToast("Name is required", "error");
+        return;
+      }
+
+      if (!email || !password) {
+        showToast("Email and password are required", "error");
+        return;
+      }
+
+      const url = isSignup ? "/api/auth/signup" : "/api/auth/login";
+      const body = isSignup ? { name, email, password } : { email, password };
+
+      authBtn.disabled = true;
+      authBtn.innerText = isSignup ? "Signing up..." : "Logging in...";
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+          showToast(result.message || "Authentication failed", "error");
+          return;
+        }
+
+        localStorage.setItem("notes_token", result.token);
+        localStorage.setItem("notes_user", JSON.stringify(result.user));
+
+        showToast(result.message, "ok");
+        showApp();
+      } catch (error) {
+        showToast("Authentication failed", "error");
+      } finally {
+        authBtn.disabled = false;
+        authBtn.innerText = isSignup ? "Signup" : "Login";
+      }
+    }
+
+    function showApp() {
+      const savedUser = user();
+
+      authSection.classList.add("hidden");
+      appSection.classList.remove("hidden");
+      logoutBtn.classList.remove("hidden");
+
+      userText.innerText = savedUser ? `Logged in as ${savedUser.name}` : "Logged in";
+
+      fetchNotes();
+    }
+
+    function showAuth() {
+      authSection.classList.remove("hidden");
+      appSection.classList.add("hidden");
+      logoutBtn.classList.add("hidden");
+      userText.innerText = "Login to manage your private notes.";
+    }
+
+    function logout() {
+      localStorage.removeItem("notes_token");
+      localStorage.removeItem("notes_user");
+      resetForm();
+      showAuth();
+      showToast("Logged out", "info");
+    }
 
     async function saveNote() {
       const title = titleInput.value.trim();
@@ -407,13 +425,17 @@
       try {
         const response = await fetch(url, {
           method,
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: authHeaders(),
           body: JSON.stringify({ title, content })
         });
 
         const result = await response.json();
+
+        if (response.status === 401) {
+          logout();
+          showToast("Session expired. Login again.", "error");
+          return;
+        }
 
         if (result.success) {
           showToast(result.message, "ok");
@@ -431,31 +453,34 @@
     }
 
     async function fetchNotes() {
-      notesDiv.innerHTML = `<div class="spinner"></div>`;
+      notesDiv.innerHTML = `<div class="empty">Loading notes...</div>`;
       countText.innerText = "Loading...";
-
-      const search = searchInput.value.trim();
-      const startDate = startDateInput.value;
-      const endDate = endDateInput.value;
-      const limit = limitSelect.value;
 
       const params = new URLSearchParams({
         page: currentPage,
-        limit
+        limit: limitSelect.value
       });
 
-      if (search) params.append("search", search);
-      if (startDate) params.append("startDate", startDate);
-      if (endDate) params.append("endDate", endDate);
+      if (searchInput.value.trim()) params.append("search", searchInput.value.trim());
+      if (startDateInput.value) params.append("startDate", startDateInput.value);
+      if (endDateInput.value) params.append("endDate", endDateInput.value);
 
       try {
-        const response = await fetch(`/api/notes?${params.toString()}`);
+        const response = await fetch(`/api/notes?${params.toString()}`, {
+          headers: authHeaders()
+        });
+
         const result = await response.json();
+
+        if (response.status === 401) {
+          logout();
+          showToast("Session expired. Login again.", "error");
+          return;
+        }
 
         notesDiv.innerHTML = "";
 
         totalPages = result.totalPages || 1;
-
         countText.innerText = `${result.totalNotes || 0} note(s) found`;
         pageInfo.innerText = `Page ${result.currentPage || 1} of ${totalPages}`;
 
@@ -467,6 +492,8 @@
           return;
         }
 
+        const search = searchInput.value.trim();
+
         result.data.forEach(note => {
           const safeTitle = escapeHtml(note.title);
           const safeContent = escapeHtml(note.content);
@@ -477,11 +504,11 @@
               <p>${highlightText(safeContent, search)}</p>
               <small>Created: ${formatDate(note.createdAt)}</small>
 
-              <button class="edit-btn" onclick="editNote('${note._id}', \`${escapeForTemplate(note.title)}\`, \`${escapeForTemplate(note.content)}\`)">
+              <button class="warn" onclick="editNote('${note._id}', \`${escapeForTemplate(note.title)}\`, \`${escapeForTemplate(note.content)}\`)">
                 Edit
               </button>
 
-              <button class="delete-btn" onclick="deleteNote('${note._id}')">
+              <button class="danger" onclick="deleteNote('${note._id}')">
                 Delete
               </button>
             </div>
@@ -495,16 +522,12 @@
 
     function editNote(id, title, content) {
       editingId = id;
-
       titleInput.value = title;
       contentInput.value = content;
       quickTagInput.value = "";
-
       saveBtn.innerText = "Update Note";
-      cancelBtn.style.display = "inline-block";
-
+      cancelBtn.classList.remove("hidden");
       window.scrollTo({ top: 0, behavior: "smooth" });
-
       showToast("Editing note", "info");
     }
 
@@ -514,18 +537,21 @@
     }
 
     async function deleteNote(id) {
-      const confirmDelete = confirm("Are you sure you want to delete this note?");
-
-      if (!confirmDelete) return;
-
-      showToast("Deleting...", "info");
+      if (!confirm("Are you sure you want to delete this note?")) return;
 
       try {
         const response = await fetch(`/api/notes/${id}`, {
-          method: "DELETE"
+          method: "DELETE",
+          headers: authHeaders()
         });
 
         const result = await response.json();
+
+        if (response.status === 401) {
+          logout();
+          showToast("Session expired. Login again.", "error");
+          return;
+        }
 
         if (result.success) {
           showToast(result.message, "ok");
@@ -540,9 +566,7 @@
 
     function changePage(direction) {
       const nextPage = currentPage + direction;
-
       if (nextPage < 1 || nextPage > totalPages) return;
-
       currentPage = nextPage;
       fetchNotes();
     }
@@ -553,7 +577,7 @@
       contentInput.value = "";
       quickTagInput.value = "";
       saveBtn.innerText = "Save Note";
-      cancelBtn.style.display = "none";
+      cancelBtn.classList.add("hidden");
     }
 
     function showToast(text, type = "info") {
@@ -568,10 +592,7 @@
 
     function highlightText(text, keyword) {
       if (!keyword) return text;
-
-      const escapedKeyword = escapeRegExp(keyword);
-      const regex = new RegExp(`(${escapedKeyword})`, "gi");
-
+      const regex = new RegExp(`(${escapeRegExp(keyword)})`, "gi");
       return text.replace(regex, "<mark>$1</mark>");
     }
 
@@ -602,22 +623,17 @@
 
     function toggleTheme() {
       document.body.classList.toggle("dark");
-
-      const isDark = document.body.classList.contains("dark");
-      localStorage.setItem("notes_theme", isDark ? "dark" : "light");
+      localStorage.setItem("notes_theme", document.body.classList.contains("dark") ? "dark" : "light");
     }
 
     function loadTheme() {
-      const savedTheme = localStorage.getItem("notes_theme");
-
-      if (savedTheme === "dark") {
+      if (localStorage.getItem("notes_theme") === "dark") {
         document.body.classList.add("dark");
       }
     }
 
     searchInput.addEventListener("input", () => {
       clearTimeout(debounceTimer);
-
       debounceTimer = setTimeout(() => {
         currentPage = 1;
         fetchNotes();
@@ -640,7 +656,12 @@
     });
 
     loadTheme();
-    fetchNotes();
+
+    if (token()) {
+      showApp();
+    } else {
+      showAuth();
+    }
   </script>
 
 </body>
