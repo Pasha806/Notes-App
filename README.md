@@ -1,4 +1,4 @@
-Notes App
+Notes App / https://360notes.netlify.app/
 
 A full-stack Notes Management application built with Node.js, Express, MongoDB, and vanilla JavaScript.
 The application allows users to securely create, edit, delete, search, and organize personal notes with authentication and a modern responsive UI.
@@ -36,9 +36,6 @@ npm run dev
 Production Mode
 npm start
 
-App runs on:
-
-http://localhost:5000
 
 Author
 Developed by Hamza Imran
