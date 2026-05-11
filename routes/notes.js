@@ -1,10 +1,45 @@
 const express = require("express");
 const Note = require("../models/Note");
 const protect = require("../middleware/authMiddleware");
+const sanitizeHtml = require("sanitize-html");
 const { generateAISummaryAndTags } = require("../services/aiService");
 
 const router = express.Router();
+
 router.use(protect);
+
+function cleanNoteHtml(html) {
+  return sanitizeHtml(String(html || ""), {
+    allowedTags: [
+      "p", "br", "b", "strong", "i", "em", "u",
+      "ul", "ol", "li", "h1", "h2", "h3",
+      "blockquote", "code", "pre", "span"
+    ],
+    allowedAttributes: {
+      span: ["style"]
+    },
+    allowedStyles: {
+      "*": {
+        "font-size": [/^\d+(px|em|rem|%)$/],
+        "font-family": [/^[a-zA-Z0-9\s,'"-]+$/]
+      }
+    }
+  });
+}
+
+function stripHtml(html) {
+  return String(html || "").replace(/<[^>]*>/g, " ");
+}
+
+function normalizeTags(tags) {
+  if (!Array.isArray(tags)) {
+    return [];
+  }
+
+  return tags
+    .map(tag => String(tag).trim().toLowerCase())
+    .filter(Boolean);
+}
 
 function validateNoteInput(title, content) {
   if (!title || !content) {
@@ -27,7 +62,10 @@ router.post("/", async (req, res) => {
   try {
     const { title, content, tags } = req.body;
 
-    const validationError = validateNoteInput(title, content);
+    const cleanContent = cleanNoteHtml(content);
+    const plainContent = stripHtml(cleanContent);
+
+    const validationError = validateNoteInput(title, plainContent);
 
     if (validationError) {
       return res.status(400).json({
@@ -37,19 +75,26 @@ router.post("/", async (req, res) => {
     }
 
     let summary = "";
-    let finalTags = Array.isArray(tags) ? tags : [];
+    let finalTags = normalizeTags(tags);
 
     try {
-      const aiResult = await generateAISummaryAndTags(title.trim(), content.trim());
-      summary = aiResult.summary;
-      finalTags = aiResult.tags;
+      const aiResult = await generateAISummaryAndTags(
+        title.trim(),
+        plainContent
+      );
+
+      summary = aiResult.summary || "";
+
+      if (Array.isArray(aiResult.tags) && aiResult.tags.length) {
+        finalTags = normalizeTags(aiResult.tags);
+      }
     } catch (aiError) {
       console.log("AI auto-tag failed:", aiError.message);
     }
 
     const note = await Note.create({
       title: title.trim(),
-      content: content.trim(),
+      content: cleanContent,
       summary,
       tags: finalTags,
       user: req.user._id
@@ -82,14 +127,16 @@ router.get("/", async (req, res) => {
     const limit = Number(req.query.limit) || 5;
     const skip = (page - 1) * limit;
 
-    let filter = {
-    user: req.user._id
+    const filter = {
+      user: req.user._id
     };
 
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
-        { content: { $regex: search, $options: "i" } }
+        { content: { $regex: search, $options: "i" } },
+        { summary: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } }
       ];
     }
 
@@ -135,7 +182,10 @@ router.put("/:id", async (req, res) => {
   try {
     const { title, content, tags } = req.body;
 
-    const validationError = validateNoteInput(title, content);
+    const cleanContent = cleanNoteHtml(content);
+    const plainContent = stripHtml(cleanContent);
+
+    const validationError = validateNoteInput(title, plainContent);
 
     if (validationError) {
       return res.status(400).json({
@@ -146,11 +196,11 @@ router.put("/:id", async (req, res) => {
 
     const updateData = {
       title: title.trim(),
-      content: content.trim()
+      content: cleanContent
     };
 
     if (Array.isArray(tags)) {
-      updateData.tags = tags.map(tag => String(tag).trim()).filter(Boolean);
+      updateData.tags = normalizeTags(tags);
     }
 
     const note = await Note.findOneAndUpdate(
@@ -187,9 +237,9 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const note = await Note.findOneAndDelete({
-  _id: req.params.id,
-  user: req.user._id
-});
+      _id: req.params.id,
+      user: req.user._id
+    });
 
     if (!note) {
       return res.status(404).json({

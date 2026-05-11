@@ -129,7 +129,7 @@ async function generateNoteFromTopic(topic) {
     {
       role: "user",
       content: `
-Create a useful note about this topic:
+Create a useful, well-formatted note about this topic:
 
 ${topic}
 
@@ -137,17 +137,19 @@ Return ONLY valid JSON:
 
 {
   "title": "clear note title",
-  "content": "well structured note content",
+  "content": "<h2>Introduction</h2><p>...</p><h2>Main Concepts</h2><ul><li>...</li></ul><h2>Key Points</h2><ul><li>...</li></ul><h2>Conclusion</h2><p>...</p>",
   "summary": "short summary under 60 words",
   "tags": ["tag1", "tag2", "tag3"]
 }
 
 Rules:
-- Content should be practical and beginner-friendly.
-- Use clear sections.
+- Content must be valid HTML.
+- Use headings, paragraphs, bullet lists, and spacing.
+- Do not use markdown.
+- Do not use asterisks like **bold**.
+- Do not use ================= lines.
 - Tags must be lowercase.
-- No markdown fences.
-- No extra text.
+- No extra text outside JSON.
 `
     }
   ]);
