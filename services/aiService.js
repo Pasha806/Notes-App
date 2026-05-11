@@ -1,14 +1,14 @@
-const { GoogleGenAI } = require("@google/genai");
+const Groq = require("groq-sdk");
 
-if (!process.env.GEMINI_API_KEY) {
-  console.warn("WARNING: GEMINI_API_KEY is missing");
+if (!process.env.GROQ_API_KEY) {
+  console.warn("WARNING: GROQ_API_KEY is missing");
 }
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY
 });
 
-const MODEL = "gemini-1.5-flash";
+const MODEL = "llama-3.1-8b-instant";
 
 function safeParseJSON(text) {
   try {
@@ -24,35 +24,38 @@ function safeParseJSON(text) {
   }
 }
 
-async function generateText(prompt) {
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is missing");
+async function generateText(messages) {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is missing");
   }
 
-  const response = await ai.models.generateContent({
+  const response = await groq.chat.completions.create({
     model: MODEL,
-    contents: prompt
+    messages,
+    temperature: 0.4,
+    max_tokens: 1200
   });
 
-  const text =
-    response.text ||
-    response.candidates?.[0]?.content?.parts?.map(part => part.text || "").join("") ||
-    "";
+  const text = response.choices?.[0]?.message?.content || "";
 
   if (!text) {
-    throw new Error("Gemini returned empty response");
+    throw new Error("Groq returned empty response");
   }
 
   return text;
 }
 
 async function generateAISummaryAndTags(title, content) {
-  const prompt = `
-You are an AI note assistant.
+  const text = await generateText([
+    {
+      role: "system",
+      content: "You are an AI note assistant. Return only valid JSON. Do not use markdown or code fences."
+    },
+    {
+      role: "user",
+      content: `
+Analyze this note and return ONLY valid JSON:
 
-Return ONLY valid JSON. Do not use markdown. Do not use code fences.
-
-Analyze this note and return:
 {
   "summary": "short summary under 60 words",
   "tags": ["tag1", "tag2", "tag3"]
@@ -68,9 +71,10 @@ Title: ${title}
 
 Content:
 ${content}
-`;
+`
+    }
+  ]);
 
-  const text = await generateText(prompt);
   const parsed = safeParseJSON(text);
 
   return {
@@ -92,32 +96,44 @@ Tags: ${(note.tags || []).join(", ")}
     })
     .join("\n");
 
-  const prompt = `
+  return await generateText([
+    {
+      role: "system",
+      content: `
 You are an AI assistant inside a private notes app.
-
-Answer the user's question using ONLY the saved notes context below.
+Answer using ONLY the user's saved notes.
 If the answer is not found in the notes, say:
 "I could not find this in your saved notes."
-
-Keep the answer clear, useful, and concise.
-
+Keep the answer clear and useful.
+`
+    },
+    {
+      role: "user",
+      content: `
 Question:
 ${question}
 
 Saved notes:
 ${context}
-`;
-
-  return await generateText(prompt);
+`
+    }
+  ]);
 }
 
 async function generateNoteFromTopic(topic) {
-  const prompt = `
+  const text = await generateText([
+    {
+      role: "system",
+      content: "You create structured study notes. Return only valid JSON. Do not use markdown or code fences."
+    },
+    {
+      role: "user",
+      content: `
 Create a useful note about this topic:
 
 ${topic}
 
-Return ONLY valid JSON. Do not use markdown. Do not use code fences.
+Return ONLY valid JSON:
 
 {
   "title": "clear note title",
@@ -132,9 +148,10 @@ Rules:
 - Tags must be lowercase.
 - No markdown fences.
 - No extra text.
-`;
+`
+    }
+  ]);
 
-  const text = await generateText(prompt);
   const parsed = safeParseJSON(text);
 
   return {
