@@ -1,6 +1,7 @@
 const express = require("express");
 const Note = require("../models/Note");
 const protect = require("../middleware/authMiddleware");
+const { generateAISummaryAndTags } = require("../services/aiService");
 
 const router = express.Router();
 router.use(protect);
@@ -21,10 +22,10 @@ function validateNoteInput(title, content) {
   return null;
 }
 
-// CREATE
+// CREATE NOTE + AUTO AI SUMMARY/TAGS
 router.post("/", async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, tags } = req.body;
 
     const validationError = validateNoteInput(title, content);
 
@@ -35,15 +36,30 @@ router.post("/", async (req, res) => {
       });
     }
 
+    let summary = "";
+    let finalTags = Array.isArray(tags) ? tags : [];
+
+    try {
+      const aiResult = await generateAISummaryAndTags(title.trim(), content.trim());
+      summary = aiResult.summary;
+      finalTags = aiResult.tags;
+    } catch (aiError) {
+      console.log("AI auto-tag failed:", aiError.message);
+    }
+
     const note = await Note.create({
-    title: title.trim(),
-    content: content.trim(),
-    user: req.user._id
+      title: title.trim(),
+      content: content.trim(),
+      summary,
+      tags: finalTags,
+      user: req.user._id
     });
 
     res.status(201).json({
       success: true,
-      message: "Note added successfully",
+      message: summary || finalTags.length
+        ? "Note saved with AI summary and tags"
+        : "Note saved. AI summary/tags were skipped.",
       data: note
     });
   } catch (error) {
@@ -114,10 +130,10 @@ router.get("/", async (req, res) => {
   }
 });
 
-// UPDATE
+// UPDATE NOTE + OPTIONAL MANUAL TAG EDIT
 router.put("/:id", async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, tags } = req.body;
 
     const validationError = validateNoteInput(title, content);
 
@@ -128,16 +144,22 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    const note = await Note.findOneAndUpdate(
-     {
-     _id: req.params.id,
-      user: req.user._id
-    },
-    {
+    const updateData = {
       title: title.trim(),
       content: content.trim()
-     },
-     { new: true, runValidators: true }
+    };
+
+    if (Array.isArray(tags)) {
+      updateData.tags = tags.map(tag => String(tag).trim()).filter(Boolean);
+    }
+
+    const note = await Note.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        user: req.user._id
+      },
+      updateData,
+      { new: true, runValidators: true }
     );
 
     if (!note) {

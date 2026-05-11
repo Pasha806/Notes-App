@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.use(protect);
 
-// Generate summary/tags for existing note
+// Regenerate summary/tags for one note
 router.post("/notes/:id/analyze", async (req, res) => {
   try {
     const note = await Note.findOne({
@@ -35,7 +35,7 @@ router.post("/notes/:id/analyze", async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "AI summary and tags generated",
+      message: "AI summary and tags regenerated",
       data: note
     });
   } catch (error) {
@@ -47,7 +47,7 @@ router.post("/notes/:id/analyze", async (req, res) => {
   }
 });
 
-// Ask AI about user's notes
+// Ask AI about notes
 router.post("/ask", async (req, res) => {
   try {
     const { question } = req.body;
@@ -61,7 +61,7 @@ router.post("/ask", async (req, res) => {
 
     const notes = await Note.find({ user: req.user._id })
       .sort({ createdAt: -1 })
-      .limit(20);
+      .limit(30);
 
     if (!notes.length) {
       return res.status(404).json({
@@ -86,7 +86,7 @@ router.post("/ask", async (req, res) => {
   }
 });
 
-// Generate new note from topic
+// Generate note content from topic but DO NOT save directly
 router.post("/generate-note", async (req, res) => {
   try {
     const { topic } = req.body;
@@ -100,18 +100,10 @@ router.post("/generate-note", async (req, res) => {
 
     const aiNote = await generateNoteFromTopic(topic);
 
-    const note = await Note.create({
-      title: aiNote.title,
-      content: aiNote.content,
-      summary: aiNote.summary,
-      tags: aiNote.tags,
-      user: req.user._id
-    });
-
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: "AI note generated successfully",
-      data: note
+      message: "AI note generated",
+      data: aiNote
     });
   } catch (error) {
     res.status(500).json({

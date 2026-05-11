@@ -4,13 +4,29 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+function safeParseJSON(text) {
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) {
+      throw new Error("AI returned invalid JSON");
+    }
+    return JSON.parse(match[0]);
+  }
+}
+
 async function generateAISummaryAndTags(title, content) {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is missing");
+  }
+
   const response = await client.responses.create({
     model: "gpt-4.1-mini",
     input: `
 You are an AI note assistant.
 
-Analyze this note and return ONLY valid JSON in this format:
+Return ONLY valid JSON:
 {
   "summary": "short summary under 60 words",
   "tags": ["tag1", "tag2", "tag3"]
@@ -29,10 +45,19 @@ ${content}
 `
   });
 
-  return JSON.parse(response.output_text);
+  const result = safeParseJSON(response.output_text);
+
+  return {
+    summary: result.summary || "",
+    tags: Array.isArray(result.tags) ? result.tags : []
+  };
 }
 
 async function answerQuestionFromNotes(question, notes) {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is missing");
+  }
+
   const context = notes
     .map((note, index) => {
       return `
@@ -50,16 +75,16 @@ Tags: ${(note.tags || []).join(", ")}
     input: `
 You are an AI assistant inside a private notes app.
 
-Answer the user's question using ONLY the notes context below.
+Answer the user's question using ONLY the saved notes context below.
 If the answer is not found in the notes, say:
 "I could not find this in your saved notes."
 
-Keep the answer clear, helpful, and concise.
+Keep the answer clear and useful.
 
-User question:
+Question:
 ${question}
 
-Saved notes context:
+Saved notes:
 ${context}
 `
   });
@@ -68,10 +93,14 @@ ${context}
 }
 
 async function generateNoteFromTopic(topic) {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is missing");
+  }
+
   const response = await client.responses.create({
     model: "gpt-4.1-mini",
     input: `
-Create a useful study note about this topic:
+Create a useful note about this topic:
 
 "${topic}"
 
@@ -85,13 +114,21 @@ Return ONLY valid JSON:
 
 Rules:
 - Content should be practical and beginner-friendly.
-- Use short sections.
+- Use clear sections.
 - Tags must be lowercase.
 - Do not include markdown fences.
+- Do not include extra text.
 `
   });
 
-  return JSON.parse(response.output_text);
+  const result = safeParseJSON(response.output_text);
+
+  return {
+    title: result.title || topic,
+    content: result.content || "",
+    summary: result.summary || "",
+    tags: Array.isArray(result.tags) ? result.tags : []
+  };
 }
 
 module.exports = {

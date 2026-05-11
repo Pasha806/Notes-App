@@ -208,18 +208,29 @@
       gap: 12px;
     }
 
-    .ai-grid {
+    .workspace-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.45fr 0.8fr;
       gap: 18px;
+      align-items: start;
     }
 
-    .ai-panel h3 {
-      margin-bottom: 6px;
+    .ai-inline {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-top: 10px;
     }
 
-    .ai-panel p {
-      margin-top: 0;
+    .ai-aside {
+      border-left: 5px solid var(--accent);
+      position: sticky;
+      top: 18px;
+    }
+
+    .ai-aside p {
+      margin-top: -4px;
       line-height: 1.5;
     }
 
@@ -260,6 +271,12 @@
       color: var(--muted);
       display: block;
       margin-bottom: 12px;
+    }
+
+    .note-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .ai-summary {
@@ -340,7 +357,7 @@
     }
 
     @media (max-width: 760px) {
-      .grid, .filters, .ai-grid {
+      .grid, .filters, .workspace-grid, .ai-inline {
         grid-template-columns: 1fr;
       }
 
@@ -351,6 +368,10 @@
 
       .top-actions {
         justify-content: flex-start;
+      }
+
+      .ai-aside {
+        position: static;
       }
     }
   </style>
@@ -396,47 +417,43 @@
     <!-- APP SECTION -->
     <div id="appSection" class="hidden">
 
-      <div class="card">
-        <div class="grid">
-          <input id="title" placeholder="Enter note title" />
-          <input id="quickTag" placeholder="Optional tag/category" />
-        </div>
+      <div class="workspace-grid">
 
-        <textarea id="content" placeholder="Enter note content"></textarea>
+        <!-- NOTE WRITING SECTION -->
+        <div class="card">
+          <h2>Write Note</h2>
+          <p>Create a note manually or let AI draft it from a topic. You can edit everything before saving.</p>
 
-        <button id="saveBtn" class="primary" onclick="saveNote()">Save Note</button>
-
-        <button id="cancelBtn" class="gray hidden" onclick="cancelEdit()">Cancel Edit</button>
-      </div>
-
-      <!-- AI TOOLS -->
-      <div class="card">
-        <div class="section-head">
-          <div>
-            <h2>AI Assistant</h2>
-            <p>Generate notes from topics or ask questions based on your saved notes.</p>
-          </div>
-        </div>
-
-        <div class="ai-grid">
-          <div class="ai-panel">
-            <h3>Generate Note from Topic</h3>
-            <p>Enter a topic and AI will create a structured note with summary and tags.</p>
-
-            <input id="aiTopicInput" placeholder="Example: Node.js event loop" />
-            <button id="generateNoteBtn" class="success" onclick="generateAINote()">Generate AI Note</button>
+          <div class="grid">
+            <input id="title" placeholder="Enter note title" />
+            <input id="quickTag" placeholder="Optional category prefix" />
           </div>
 
-          <div class="ai-panel">
-            <h3>Ask AI About Notes</h3>
-            <p>Ask a question and AI will answer using your saved notes only.</p>
+          <textarea id="content" placeholder="Enter note content"></textarea>
 
-            <input id="aiQuestionInput" placeholder="Example: What did I learn about MongoDB?" />
-            <button id="askAIBtn" class="primary" onclick="askAI()">Ask AI</button>
-
-            <div id="aiAnswerBox" class="ai-answer"></div>
+          <div class="ai-inline">
+            <input id="aiTopicInput" placeholder="Enter a topic and let AI draft the note..." />
+            <button id="generateNoteBtn" class="success" onclick="generateAINoteDraft()">Generate with AI</button>
           </div>
+
+          <input id="tagsInput" placeholder="Tags, comma separated. Example: nodejs, backend, mongodb" />
+
+          <button id="saveBtn" class="primary" onclick="saveNote()">Save Note</button>
+
+          <button id="cancelBtn" class="gray hidden" onclick="cancelEdit()">Cancel Edit</button>
         </div>
+
+        <!-- ASK AI ASIDE -->
+        <div class="card ai-aside">
+          <h2>Ask AI</h2>
+          <p>Ask a topic or question and AI will answer using your saved notes only.</p>
+
+          <input id="aiQuestionInput" placeholder="Example: What did I learn about MongoDB?" />
+          <button id="askAIBtn" class="primary" onclick="askAI()">Ask AI</button>
+
+          <div id="aiAnswerBox" class="ai-answer"></div>
+        </div>
+
       </div>
 
       <div class="card">
@@ -498,6 +515,7 @@
     const titleInput = document.getElementById("title");
     const contentInput = document.getElementById("content");
     const quickTagInput = document.getElementById("quickTag");
+    const tagsInput = document.getElementById("tagsInput");
     const notesDiv = document.getElementById("notes");
     const saveBtn = document.getElementById("saveBtn");
     const cancelBtn = document.getElementById("cancelBtn");
@@ -627,6 +645,11 @@
         return;
       }
 
+      const manualTags = tagsInput.value
+        .split(",")
+        .map(tag => tag.trim().toLowerCase())
+        .filter(Boolean);
+
       const url = editingId ? `/api/notes/${editingId}` : "/api/notes";
       const method = editingId ? "PUT" : "POST";
 
@@ -637,7 +660,11 @@
         const response = await fetch(url, {
           method,
           headers: authHeaders(),
-          body: JSON.stringify({ title, content })
+          body: JSON.stringify({
+            title,
+            content,
+            tags: manualTags
+          })
         });
 
         const result = await response.json();
@@ -656,6 +683,7 @@
           showToast(result.message || "Action failed", "error");
         }
       } catch (error) {
+        console.error(error);
         showToast("Something went wrong", "error");
       } finally {
         saveBtn.disabled = false;
@@ -731,21 +759,24 @@
 
               <small>Created: ${formatDate(note.createdAt)}</small>
 
-              <button class="success" onclick="analyzeNote('${note._id}', this)">
-                AI Summary + Tags
-              </button>
+              <div class="note-actions">
+                <button class="success" onclick="analyzeNote('${note._id}', this)">
+                  Regenerate AI Tags
+                </button>
 
-              <button class="warn" onclick="editNote('${note._id}', \`${escapeForTemplate(note.title)}\`, \`${escapeForTemplate(note.content)}\`)">
-                Edit
-              </button>
+                <button class="warn" onclick="editNote('${note._id}', \`${escapeForTemplate(note.title)}\`, \`${escapeForTemplate(note.content)}\`, \`${escapeForTemplate(tags.join(", "))}\`)">
+                  Edit
+                </button>
 
-              <button class="danger" onclick="deleteNote('${note._id}')">
-                Delete
-              </button>
+                <button class="danger" onclick="deleteNote('${note._id}')">
+                  Delete
+                </button>
+              </div>
             </div>
           `;
         });
       } catch (error) {
+        console.error(error);
         notesDiv.innerHTML = `<div class="empty">Failed to load notes</div>`;
         showToast("Failed to load notes", "error");
       }
@@ -753,7 +784,7 @@
 
     async function analyzeNote(id, button) {
       button.disabled = true;
-      button.innerText = "Analyzing...";
+      button.innerText = "Regenerating...";
 
       try {
         const response = await fetch(`/api/ai/notes/${id}/analyze`, {
@@ -774,12 +805,14 @@
           fetchNotes();
         } else {
           showToast(result.message || "AI analysis failed", "error");
+          console.log("AI analysis error:", result);
         }
       } catch (error) {
+        console.error(error);
         showToast("AI analysis failed", "error");
       } finally {
         button.disabled = false;
-        button.innerText = "AI Summary + Tags";
+        button.innerText = "Regenerate AI Tags";
       }
     }
 
@@ -794,7 +827,7 @@
       askAIBtn.disabled = true;
       askAIBtn.innerText = "Thinking...";
       aiAnswerBox.style.display = "block";
-      aiAnswerBox.innerText = "AI is reading your notes...";
+      aiAnswerBox.innerText = "AI is searching your saved notes...";
 
       try {
         const response = await fetch("/api/ai/ask", {
@@ -817,8 +850,10 @@
         } else {
           aiAnswerBox.innerText = result.message || "AI could not answer this.";
           showToast(result.message || "AI question failed", "error");
+          console.log("AI ask error:", result);
         }
       } catch (error) {
+        console.error(error);
         aiAnswerBox.innerText = "AI question failed.";
         showToast("AI question failed", "error");
       } finally {
@@ -827,7 +862,7 @@
       }
     }
 
-    async function generateAINote() {
+    async function generateAINoteDraft() {
       const topic = aiTopicInput.value.trim();
 
       if (!topic) {
@@ -854,26 +889,33 @@
         }
 
         if (result.success) {
-          showToast(result.message, "ok");
-          aiTopicInput.value = "";
-          currentPage = 1;
-          fetchNotes();
+          titleInput.value = result.data.title || topic;
+          contentInput.value = result.data.content || "";
+          tagsInput.value = Array.isArray(result.data.tags)
+            ? result.data.tags.join(", ")
+            : "";
+
+          showToast("AI draft created. Review and save it.", "ok");
+          window.scrollTo({ top: 0, behavior: "smooth" });
         } else {
           showToast(result.message || "AI note generation failed", "error");
+          console.log("AI generation error:", result);
         }
       } catch (error) {
+        console.error(error);
         showToast("AI note generation failed", "error");
       } finally {
         generateNoteBtn.disabled = false;
-        generateNoteBtn.innerText = "Generate AI Note";
+        generateNoteBtn.innerText = "Generate with AI";
       }
     }
 
-    function editNote(id, title, content) {
+    function editNote(id, title, content, tags = "") {
       editingId = id;
       titleInput.value = title;
       contentInput.value = content;
       quickTagInput.value = "";
+      tagsInput.value = tags;
       saveBtn.innerText = "Update Note";
       cancelBtn.classList.remove("hidden");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -909,6 +951,7 @@
           showToast(result.message || "Delete failed", "error");
         }
       } catch (error) {
+        console.error(error);
         showToast("Delete failed", "error");
       }
     }
@@ -925,6 +968,8 @@
       titleInput.value = "";
       contentInput.value = "";
       quickTagInput.value = "";
+      tagsInput.value = "";
+      aiTopicInput.value = "";
       saveBtn.innerText = "Save Note";
       cancelBtn.classList.add("hidden");
     }
