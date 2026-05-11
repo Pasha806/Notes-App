@@ -40,22 +40,21 @@ Users can ask a question, and the AI answers based only on their saved notes. Th
   
 ## Installation & Setup
 1. Clone Repository
-git clone https://github.com/Pasha806/notes-api.git
+git clone https://github.com/Pasha806/notes-api.git <br>
 cd notes-api
-2. Install Dependencies
+2. Install Dependencies <br>
 npm install
 3. Create .env
 
-Create a .env file in the root folder:
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-GEMINI_API_KEY=your_gemini_api_key
-PORT=5000
-Run Locally
-Development Mode
-npm run dev
-Production Mode
-npm start
+Create a .env file in the root folder: <br>
+MONGO_URI=your_mongodb_connection_string <br>
+JWT_SECRET=your_secret_key <br>
+GEMINI_API_KEY=your_gemini_api_key <br>
+Run Locally <br>
+Development Mode <br>
+npm run dev <br>
+Production Mode <br>
+npm start 
 
 
 ## Author
