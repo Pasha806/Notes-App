@@ -5,6 +5,7 @@ require("dotenv").config();
 
 const authRoutes = require("../../routes/auth");
 const noteRoutes = require("../../routes/notes");
+const aiRoutes = require("../../routes/ai");
 
 const app = express();
 
@@ -34,5 +35,6 @@ app.use(async (req, res, next) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", noteRoutes);
+app.use("/api/ai", aiRoutes);
 
 module.exports.handler = serverless(app);
