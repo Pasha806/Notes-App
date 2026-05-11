@@ -40,7 +40,7 @@ Users can ask a question, and the AI answers based only on their saved notes. Th
   
 ## Installation & Setup
 1. Clone Repository
-git clone https://github.com/Pasha806/notes-api.git <br>
+git clone https://github.com/Pasha806/Notes-App.git <br>
 cd notes-api
 2. Install Dependencies <br>
 npm install
