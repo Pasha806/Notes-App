@@ -1,32 +1,58 @@
-const OpenAI = require("openai");
+const { GoogleGenAI } = require("@google/genai");
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+if (!process.env.GEMINI_API_KEY) {
+  console.warn("WARNING: GEMINI_API_KEY is missing");
+}
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY
 });
+
+const MODEL = "gemini-2.0-flash";
 
 function safeParseJSON(text) {
   try {
     return JSON.parse(text);
   } catch (error) {
-    const match = text.match(/\{[\s\S]*\}/);
+    const match = String(text).match(/\{[\s\S]*\}/);
+
     if (!match) {
-      throw new Error("AI returned invalid JSON");
+      throw new Error("AI returned invalid JSON: " + text);
     }
+
     return JSON.parse(match[0]);
   }
 }
 
-async function generateAISummaryAndTags(title, content) {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is missing");
+async function generateText(prompt) {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is missing");
   }
 
-  const response = await client.responses.create({
-    model: "gpt-4.1-mini",
-    input: `
+  const response = await ai.models.generateContent({
+    model: MODEL,
+    contents: prompt
+  });
+
+  const text =
+    response.text ||
+    response.candidates?.[0]?.content?.parts?.map(part => part.text || "").join("") ||
+    "";
+
+  if (!text) {
+    throw new Error("Gemini returned empty response");
+  }
+
+  return text;
+}
+
+async function generateAISummaryAndTags(title, content) {
+  const prompt = `
 You are an AI note assistant.
 
-Return ONLY valid JSON:
+Return ONLY valid JSON. Do not use markdown. Do not use code fences.
+
+Analyze this note and return:
 {
   "summary": "short summary under 60 words",
   "tags": ["tag1", "tag2", "tag3"]
@@ -35,29 +61,25 @@ Return ONLY valid JSON:
 Rules:
 - Tags must be short lowercase words.
 - Return 3 to 6 tags.
-- Do not include markdown.
-- Do not include extra text.
+- No markdown.
+- No extra text.
 
 Title: ${title}
 
 Content:
 ${content}
-`
-  });
+`;
 
-  const result = safeParseJSON(response.output_text);
+  const text = await generateText(prompt);
+  const parsed = safeParseJSON(text);
 
   return {
-    summary: result.summary || "",
-    tags: Array.isArray(result.tags) ? result.tags : []
+    summary: parsed.summary || "",
+    tags: Array.isArray(parsed.tags) ? parsed.tags : []
   };
 }
 
 async function answerQuestionFromNotes(question, notes) {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is missing");
-  }
-
   const context = notes
     .map((note, index) => {
       return `
@@ -70,41 +92,33 @@ Tags: ${(note.tags || []).join(", ")}
     })
     .join("\n");
 
-  const response = await client.responses.create({
-    model: "gpt-4.1-mini",
-    input: `
+  const prompt = `
 You are an AI assistant inside a private notes app.
 
 Answer the user's question using ONLY the saved notes context below.
 If the answer is not found in the notes, say:
 "I could not find this in your saved notes."
 
-Keep the answer clear and useful.
+Keep the answer clear, useful, and concise.
 
 Question:
 ${question}
 
 Saved notes:
 ${context}
-`
-  });
+`;
 
-  return response.output_text;
+  return await generateText(prompt);
 }
 
 async function generateNoteFromTopic(topic) {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is missing");
-  }
-
-  const response = await client.responses.create({
-    model: "gpt-4.1-mini",
-    input: `
+  const prompt = `
 Create a useful note about this topic:
 
-"${topic}"
+${topic}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON. Do not use markdown. Do not use code fences.
+
 {
   "title": "clear note title",
   "content": "well structured note content",
@@ -116,18 +130,18 @@ Rules:
 - Content should be practical and beginner-friendly.
 - Use clear sections.
 - Tags must be lowercase.
-- Do not include markdown fences.
-- Do not include extra text.
-`
-  });
+- No markdown fences.
+- No extra text.
+`;
 
-  const result = safeParseJSON(response.output_text);
+  const text = await generateText(prompt);
+  const parsed = safeParseJSON(text);
 
   return {
-    title: result.title || topic,
-    content: result.content || "",
-    summary: result.summary || "",
-    tags: Array.isArray(result.tags) ? result.tags : []
+    title: parsed.title || topic,
+    content: parsed.content || "",
+    summary: parsed.summary || "",
+    tags: Array.isArray(parsed.tags) ? parsed.tags : []
   };
 }
 

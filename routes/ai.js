@@ -12,6 +12,16 @@ const router = express.Router();
 
 router.use(protect);
 
+router.get("/debug", async (req, res) => {
+  res.json({
+    success: true,
+    hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+    keyStart: process.env.OPENAI_API_KEY
+      ? process.env.OPENAI_API_KEY.slice(0, 7)
+      : null
+  });
+});
+
 // Regenerate summary/tags for one note
 router.post("/notes/:id/analyze", async (req, res) => {
   try {
@@ -39,6 +49,8 @@ router.post("/notes/:id/analyze", async (req, res) => {
       data: note
     });
   } catch (error) {
+    console.error("AI analysis error:", error);
+
     res.status(500).json({
       success: false,
       message: "AI analysis failed",
@@ -78,6 +90,8 @@ router.post("/ask", async (req, res) => {
       answer
     });
   } catch (error) {
+    console.error("AI ask error:", error);
+
     res.status(500).json({
       success: false,
       message: "AI question failed",
@@ -86,7 +100,7 @@ router.post("/ask", async (req, res) => {
   }
 });
 
-// Generate note content from topic but DO NOT save directly
+// Generate note draft from topic
 router.post("/generate-note", async (req, res) => {
   try {
     const { topic } = req.body;
@@ -106,6 +120,8 @@ router.post("/generate-note", async (req, res) => {
       data: aiNote
     });
   } catch (error) {
+    console.error("AI note generation error:", error);
+
     res.status(500).json({
       success: false,
       message: "AI note generation failed",
